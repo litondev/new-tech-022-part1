@@ -5,40 +5,42 @@
                 @submit="onSubmit">
               <div class="row">
                 <div class="col-12">
-                    <h2>Signin </h2>
+                    <h2>Signin</h2>
                 </div>
-                <div class="col-12">
-                    <div class="form-group">
-                        <label for="email">Email</label>
+                <div class="col-12 mt-2">
+                    <div class="form-group mb-2">
+                        <label for="email" class="mb-2">Email</label>
                         <Field
                             v-model="email"
                             name="email" 
                             type="text" 
                             class="form-control"
-                            rules="required"
+                            :class='errors.email ? "is-invalid" : ""'
                             />
-                            <span>{{ errors.email }}</span>
-                    </div>
-                    <div class="form-group">
-                        <label for="password">Password</label>
+                            <span class="invalid-feedback">{{ errors.email }}</span>
+                    </div>                
+
+                    <div class="form-group mb-2">
+                        <label for="password" class="mb-2">Password</label>
                         <Field 
                             v-model="password"
                             name="password"
                             type="password"
                             class="form-control"
-                            rules="required"
-                            />
-                            <span>{{ errors.password }}</span>
+                            :class='errors.password ? "is-invalid" : ""'/>
+                            <span class="invalid-feedback">{{ errors.password }}</span>
                     </div>
                 </div>
-                <div class="col-12 mt-2">
-                    <button class="btn btn-primary">
+                <div class="col-12 mt-4">
+                    <button class="btn btn-primary"
+                        type="submit">
                         Kirim
                     </button>
-                    <a class="btn btn-danger"
+                    <button class="btn btn-danger m-3"
+                        type="button"
                         @click="onResetForm()">
                         Reset
-                    </a>
+                    </button>
                 </div>
             </div>
          </form>                    
@@ -49,7 +51,6 @@
 <script>
 import { Field, useForm,useField } from 'vee-validate';
 
-
 export default {
     setup(){        
         const { handleSubmit, errors ,resetForm } = useForm({
@@ -59,8 +60,7 @@ export default {
             }
         });
 
-        const onSubmit = handleSubmit((values, actions) => {
-            alert(JSON.stringify(values, null, 2));
+        const onSubmit = handleSubmit((values, actions) => {    
             actions.resetForm();
         });
 
@@ -69,7 +69,7 @@ export default {
         }
 
         const { email } = useField('email');
-        const { password } = useField('password');
+        const { password } = useField('password');        
 
         return {
             onResetForm,
