@@ -1,6 +1,8 @@
 <template>
     <div>
         Product
+        <br/>
+        {{user ? user.name : "-"}}
     </div>
 </template>
 
@@ -11,6 +13,12 @@ export default {
             middleware: ["auth"],
             layout: "auth",
         })
+
+        const user = useState("user");
+
+        return {
+            user
+        }
     }
 }
 </script>

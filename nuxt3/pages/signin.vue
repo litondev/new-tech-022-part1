@@ -72,6 +72,7 @@ export default {
         const nuxtApp = useNuxtApp();        
         const { vueApp } = useNuxtApp();    
         const token = useCookie("token")
+        const user = useState("user");
 
         const isLoadingForm = useState('isLoadingForm',() => false);
         const email = useState('email');
@@ -92,6 +93,7 @@ export default {
                 email : email.value,        
             }).then(res => {       
                 token.value = res.data.access_token;
+                user.value = res.data.user;
                 // tokewindow.localStorage.setItem("token",res.data.access_token);
                 // console.log(res);
                 nuxtApp.$router.push("/profil");

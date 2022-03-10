@@ -1,6 +1,8 @@
 <template>
     <div>
         Profil
+        <br/>
+        {{user ? user.name : "-"}}
     </div>
 </template>
 
@@ -10,7 +12,13 @@ export default {
         definePageMeta({
             middleware: ["auth"],
             layout: "auth",
-        })
+        })    
+
+        const user = useState("user");
+
+        return {
+            user
+        }
     }
 }
 </script>
