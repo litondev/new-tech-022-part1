@@ -4,16 +4,23 @@ import { defineNuxtConfig } from 'nuxt3'
 export default defineNuxtConfig({
     ssr: false,
     
+    server: {
+      host: process.env.HOST,
+      port : process.env.PORT
+    },
+
     css : [
         "bootstrap/dist/css/bootstrap.css"
     ],
 
     plugins: [
-        "@/plugins/vee-validate.js"
+        {src : "@/plugins/vee-validate.js",ssr : false},
+        {src : "@/plugins/toast.js",ssr : false},
+        {src : "@/plugins/axios.js",ssr : false},
     ],
 
     head: {
-        title: 'Nuanza',
+        title: 'Nuxt3',
         htmlAttrs: {
           lang: 'en'
         },
@@ -23,5 +30,9 @@ export default defineNuxtConfig({
           { hid: 'description', name: 'description', content: '' },
           { name: 'format-detection', content: 'telephone=no' }
         ],
-    }
-})
+    },
+
+    publicRuntimeConfig: {
+      apiUrl : process.env.API_URL,
+    },
+});

@@ -34,7 +34,12 @@
                 <div class="col-12 mt-4">
                     <button class="btn btn-primary"
                         type="submit">
-                        Kirim
+                        <span v-if="!isLoadingForm">
+                            Kirim
+                        </span>
+                        <span v-else>
+                            . . .
+                        </span>
                     </button>
                     <button class="btn btn-danger m-3"
                         type="button"
@@ -49,10 +54,29 @@
 </template>
 
 <script>
-import { Field, useForm,useField } from 'vee-validate';
-
+import { Field, useForm } from 'vee-validate';
 export default {
+    components: {
+        Field,
+    },
+    head(){
+        return {
+            title : "Signin"
+        }
+    }, 
     setup(){        
+        definePageMeta({
+            middleware: ["no-auth"]
+        })
+
+        const nuxtApp = useNuxtApp();        
+        const { vueApp } = useNuxtApp();    
+        const token = useCookie("token")
+
+        const isLoadingForm = useState('isLoadingForm',() => false);
+        const email = useState('email');
+        const password = useState('password');
+
         const { handleSubmit, errors ,resetForm } = useForm({
             validationSchema: {
                 email: 'required|email',
@@ -60,27 +84,43 @@ export default {
             }
         });
 
-        const onSubmit = handleSubmit((values, actions) => {    
-            actions.resetForm();
+        const onSubmit = handleSubmit(() => {    
+            isLoadingForm.value = true;
+
+            vueApp.$axios.post("/signin",{            
+                password : password.value,
+                email : email.value,        
+            }).then(res => {       
+                token.value = res.data.access_token;
+                // tokewindow.localStorage.setItem("token",res.data.access_token);
+                // console.log(res);
+                nuxtApp.$router.push("/profil");
+            })
+            .catch(err => {
+                isLoadingForm.value = false;
+
+                console.log(err);
+
+                if(err.response && err.response.status == 422){
+                    vueApp.$toast.error(err.response.data.message || "Terjadi Kesalahan")
+                }else{
+                    vueApp.$toast.error("Terjadi Kesalahan");
+                }
+            });        
         });
 
         function onResetForm(){
             resetForm();
         }
 
-        const { email } = useField('email');
-        const { password } = useField('password');        
-
         return {
             onResetForm,
             onSubmit,
             email,
             password,
+            isLoadingForm,
             errors
         }
-    },
-    components: {
-        Field,
-    },
+    }   
 }
 </script>

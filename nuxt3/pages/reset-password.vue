@@ -45,7 +45,12 @@
                 <div class="col-12 mt-4">
                     <button class="btn btn-primary"
                         type="submit">
-                        Kirim
+                       <span v-if="!isLoadingForm">
+                            Kirim
+                        </span>
+                        <span v-else>
+                            . . .
+                        </span>
                     </button>
                     <button class="btn btn-danger m-3"
                         type="button"
@@ -63,41 +68,6 @@
 import { Field, useForm, useField } from 'vee-validate';
 
 export default {
-    setup(){        
-        const { handleSubmit, errors ,resetForm } = useForm({
-            validationSchema: {
-                token : 'required',
-                password : 'required',
-                password_confirmation : 'required'
-            }
-        });
-
-
-        function onResetForm(){
-            resetForm();
-        }
-
-        // const email = useRef("");
-        const { email } = useField('email');
-        const { token } = useField('token');
-        const { password } = useField('password');
-        const { password_confirmation } = useField('password_confirmation');
-
-        const onSubmit = handleSubmit((values, actions) => {    
-            console.log(values);
-            // actions.resetForm();
-        });
-
-        return {
-            onResetForm,
-            onSubmit,
-            email,
-            token,
-            password,
-            password_confirmation,
-            errors
-        }
-    },
     created(){
         if(!this.$route.query.email){
             this.$router.push("/signin");
@@ -108,5 +78,71 @@ export default {
     components: {
         Field,
     },
+    head(){
+        return {
+            title : "Reset Password"
+        }
+    }, 
+    setup(){       
+        definePageMeta({
+            middleware: ["no-auth"]
+        })
+
+        const nuxtApp = useNuxtApp();        
+        const { vueApp } = useNuxtApp();    
+
+        const isLoadingForm = useState('isLoadingForm',() => false);        
+        const email = useState('email');
+        const token = useState('token');
+        const password = useState('password');
+        const password_confirmation = useState('password_confirmation');
+
+        const { handleSubmit, errors ,resetForm } = useForm({
+            validationSchema: {
+                token : 'required',
+                password : 'required',
+                password_confirmation : 'required'
+            }
+        });
+
+        const onSubmit = handleSubmit(() => {    
+            isLoadingForm.value = true;
+
+            vueApp.$axios.post("/reset-password",{            
+                token : token.value,
+                password : password.value,
+                password_confirmation : password_confirmation.value,
+                email : email.value,        
+            }).then(res => {            
+                nuxtApp.$router.push("/signin");
+            })
+            .catch(err => {
+                isLoadingForm.value = false;
+
+                console.log(err);
+
+                if(err.response && err.response.status == 422){
+                    vueApp.$toast.error(err.response.data.message || "Terjadi Kesalahan")
+                }else{
+                    vueApp.$toast.error("Terjadi Kesalahan");
+                }
+            });        
+        });
+
+        function onResetForm(){
+            resetForm();
+        }       
+
+        return {
+            onResetForm,
+            onSubmit,
+            email,
+            token,
+            password,
+            password_confirmation,
+            isLoadingForm,
+            errors
+        }
+    },   
 }
 </script>

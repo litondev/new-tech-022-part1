@@ -45,7 +45,12 @@
                 <div class="col-12 mt-4">
                     <button class="btn btn-primary"
                         type="submit">
-                        Kirim
+                        <span v-if="!isLoadingForm">
+                            Kirim
+                        </span>
+                        <span v-else>
+                            . . .
+                        </span>
                     </button>
                     <button class="btn btn-danger m-3"
                         type="button"
@@ -60,10 +65,34 @@
 </template>
 
 <script>
-import { Field, useForm,useField } from 'vee-validate';
+import { Field, useForm } from 'vee-validate';
 
 export default {
-    setup(){        
+    created(){
+        // const { vueApp } = useNuxtApp();        
+        // console.log(vueApp);
+    },
+    components: {
+        Field,
+    },
+    head(){
+        return {
+            title : "Signup"
+        }
+    }, 
+    setup(){             
+        definePageMeta({
+            middleware: ["no-auth"]
+        })
+
+        const nuxtApp = useNuxtApp();        
+        const { vueApp } = useNuxtApp();        
+
+        const isLoadingForm = useState('isLoadingForm',() => false);
+        const name = useState('name');
+        const email = useState('email');
+        const password = useState('password');             
+
         const { handleSubmit, errors ,resetForm } = useForm({
             validationSchema: {
                 name : "required",
@@ -72,17 +101,31 @@ export default {
             }
         });
 
-        const onSubmit = handleSubmit((values, actions) => {    
-            actions.resetForm();
-        });
+        const onSubmit = handleSubmit(() => {                 
+            isLoadingForm.value = true;
 
+            vueApp.$axios.post("/signup",{
+                name : name.value,
+                email : email.value,
+                password : password.value   
+            }).then(res => {
+                vueApp.$toast.success("Berhasil membuat user");
+                nuxtApp.$router.push("/signin");
+            })
+            .catch(err => {
+                isLoadingForm.value = false;
+                console.log(err);
+                if(err.response && err.response.status == 422){
+                    vueApp.$toast.error(err.response.data.message || "Terjadi Kesalahan")
+                }else{
+                    vueApp.$toast.error("Terjadi Kesalahan");
+                }
+            });
+        });
+            
         function onResetForm(){
             resetForm();
         }
-
-        const { name } = useField('name');
-        const { email } = useField('email');
-        const { password } = useField('password');        
 
         return {
             onResetForm,
@@ -90,11 +133,9 @@ export default {
             name,
             email,
             password,
-            errors
+            errors,
+            isLoadingForm
         }
-    },
-    components: {
-        Field,
-    },
+    } 
 }
 </script>
